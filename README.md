@@ -2,6 +2,11 @@
 
 **Open-source, local-first desktop AI agent platform that executes tasks, not just chats.**
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iamr1ddl3/open-agent-platform/blob/main/notebooks/OpenAgentPlatform_Colab.ipynb)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-blue.svg)](https://www.typescriptlang.org/)
+[![Electron](https://img.shields.io/badge/Electron-41+-47848F.svg)](https://www.electronjs.org/)
+
 Inspired by [Accio Work](https://www.accio.com/work/) by Alibaba International, OpenAgentPlatform brings the same powerful agentic capabilities as an open-source, self-hosted Electron desktop application. Create AI agents that can read files, run terminal commands, automate browsers, call APIs, and collaborate as teams — all running locally on your machine.
 
 ---
