@@ -1,0 +1,26 @@
+appId: com.openagentplatform.app
+productName: OpenAgentPlatform
+directories:
+  output: release
+files:
+  - dist/**/*
+  - package.json
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+win:
+  target:
+    - nsis
+    - zip
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

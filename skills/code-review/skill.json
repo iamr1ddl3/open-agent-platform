@@ -1,0 +1,26 @@
+{
+  "id": "code-review",
+  "name": "Code Review",
+  "version": "1.0.0",
+  "description": "Automated code review and analysis",
+  "tools": [
+    {
+      "name": "review_code",
+      "description": "Review code for quality and best practices",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Code to review"
+          },
+          "language": {
+            "type": "string",
+            "description": "Programming language"
+          }
+        },
+        "required": ["code", "language"]
+      }
+    }
+  ]
+}

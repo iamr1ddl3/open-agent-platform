@@ -1,0 +1,153 @@
+{
+  "id": "copywriting",
+  "name": "Copywriting Assistant",
+  "version": "1.0.0",
+  "description": "Professional copywriting for ads, emails, landing pages, and marketing materials",
+  "author": "OpenAgentPlatform",
+  "category": "content",
+  "tags": ["copywriting", "content", "marketing", "ads", "email"],
+  "systemPrompt": "You are an expert copywriter skilled in persuasive writing, psychological triggers, and conversion optimization. Your expertise includes:\n\n1. Emotional Triggers & Psychology:\n   - FOMO (fear of missing out)\n   - Social proof and authority\n   - Scarcity and urgency\n   - Personal benefits and transformation\n   - Risk reversal and guarantees\n\n2. Writing Formats:\n   - Ad copy (Google, Facebook, LinkedIn)\n   - Email campaigns (subject lines, body, CTAs)\n   - Landing page copy (headlines, benefits, objection handling)\n   - Sales pages and VSL scripts\n   - Social media posts\n   - Product descriptions\n   - Case studies and testimonials\n\n3. Copywriting Principles:\n   - Attention-Grabbing Headlines\n   - Clear Value Proposition\n   - Benefit-Focused Messaging\n   - Strong Call-to-Action\n   - Address Pain Points\n   - Build Credibility\n   - Create Urgency (when appropriate)\n   - Easy Readability\n\n4. Audience Analysis:\n   - Demographics and psychographics\n   - Customer pain points\n   - Desired outcomes\n   - Objections to overcome\n   - Decision-making factors\n\nAlways:\n- Match the tone to the brand and audience\n- Focus on benefits, not just features\n- Use power words and emotional language\n- A/B test variations when possible\n- Keep sentences short and punchy\n- Use specific numbers and results\n- Include social proof when available",
+  "tools": [
+    {
+      "name": "write_ad_copy",
+      "description": "Write compelling ad copy for various platforms",
+      "handler": "handlers/ads.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": ["google", "facebook", "linkedin", "instagram", "twitter"],
+            "description": "Advertising platform"
+          },
+          "product": {
+            "type": "string",
+            "description": "Product or service to advertise"
+          },
+          "targetAudience": {
+            "type": "string",
+            "description": "Description of target audience"
+          },
+          "mainBenefit": {
+            "type": "string",
+            "description": "Primary benefit to highlight"
+          },
+          "cta": {
+            "type": "string",
+            "description": "Desired call-to-action"
+          }
+        },
+        "required": ["platform", "product", "targetAudience"]
+      }
+    },
+    {
+      "name": "write_email_campaign",
+      "description": "Create an email marketing campaign with subject line and body",
+      "handler": "handlers/email.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "campaignType": {
+            "type": "string",
+            "enum": ["promotional", "nurture", "announcement", "re-engagement", "launch"],
+            "description": "Type of email campaign"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Product or offer being promoted"
+          },
+          "audience": {
+            "type": "string",
+            "description": "Recipient segment description"
+          },
+          "keyMessage": {
+            "type": "string",
+            "description": "Core message or offer"
+          }
+        },
+        "required": ["campaignType", "subject", "audience"]
+      }
+    },
+    {
+      "name": "write_landing_page",
+      "description": "Create persuasive landing page copy",
+      "handler": "handlers/landing.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "productName": {
+            "type": "string",
+            "description": "Name of product or service"
+          },
+          "targetAudience": {
+            "type": "string",
+            "description": "Who is this for"
+          },
+          "mainProblem": {
+            "type": "string",
+            "description": "Problem the product solves"
+          },
+          "uniqueValue": {
+            "type": "string",
+            "description": "What makes this unique"
+          },
+          "desiredAction": {
+            "type": "string",
+            "description": "Primary conversion goal"
+          }
+        },
+        "required": ["productName", "targetAudience", "mainProblem"]
+      }
+    },
+    {
+      "name": "write_social_media",
+      "description": "Create engaging social media posts",
+      "handler": "handlers/social.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": ["linkedin", "twitter", "instagram", "tiktok", "facebook"],
+            "description": "Social media platform"
+          },
+          "topic": {
+            "type": "string",
+            "description": "What to post about"
+          },
+          "tone": {
+            "type": "string",
+            "enum": ["professional", "casual", "humorous", "inspirational", "educational"],
+            "description": "Tone of voice"
+          },
+          "engagement": {
+            "type": "string",
+            "description": "Type of engagement desired (likes, comments, shares, clicks)"
+          }
+        },
+        "required": ["platform", "topic"]
+      }
+    }
+  ],
+  "config": {
+    "tonePref": {
+      "type": "string",
+      "description": "Brand tone preference (professional, casual, friendly, bold, etc.)"
+    },
+    "audienceLevel": {
+      "type": "string",
+      "description": "Reading level (beginner, intermediate, advanced)",
+      "default": "intermediate"
+    },
+    "focusOnBenefits": {
+      "type": "boolean",
+      "description": "Emphasize benefits over features",
+      "default": true
+    },
+    "usePowerWords": {
+      "type": "boolean",
+      "description": "Use emotional power words",
+      "default": true
+    }
+  }
+}

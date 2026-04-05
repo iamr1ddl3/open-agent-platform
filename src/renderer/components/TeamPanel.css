@@ -1,0 +1,171 @@
+.team-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.panel-icon {
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.panel-header h1 {
+  margin: 0;
+}
+
+.panel-subtitle {
+  color: var(--text-muted);
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  gap: 1rem;
+}
+
+.empty-icon {
+  opacity: 0.5;
+  color: var(--text-muted);
+}
+
+.empty-state h3 {
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.teams-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.team-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.team-info h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.team-description {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.team-strategy {
+  white-space: nowrap;
+}
+
+.team-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.members-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.member-avatars {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.member-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.member-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.member-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.team-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.team-actions .btn {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .team-panel {
+    padding: 1rem;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .teams-list {
+    grid-template-columns: 1fr;
+  }
+}

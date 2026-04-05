@@ -1,0 +1,92 @@
+{
+  "id": "seo-audit",
+  "name": "SEO Audit",
+  "version": "1.0.0",
+  "description": "Comprehensive SEO analysis and recommendations for improving search engine visibility",
+  "author": "OpenAgentPlatform",
+  "category": "marketing",
+  "tags": ["seo", "audit", "marketing", "web-optimization"],
+  "systemPrompt": "You are an SEO expert with extensive knowledge of search engine optimization, web standards, and digital marketing. When analyzing websites for SEO:\n\n1. Evaluate Meta Tags:\n   - Title tag (optimal 50-60 characters)\n   - Meta description (optimal 150-160 characters)\n   - Canonical tags\n   - Open Graph tags\n\n2. Check Content Structure:\n   - H1/H2/H3 hierarchy\n   - Keyword distribution\n   - Content length and depth\n   - Readability metrics\n\n3. Analyze Technical SEO:\n   - Page speed (Core Web Vitals)\n   - Mobile responsiveness\n   - XML sitemap\n   - robots.txt\n   - HTTPS/SSL\n   - Structured data (Schema markup)\n\n4. Evaluate User Experience:\n   - Click-through rate potential\n   - User engagement signals\n   - Navigation structure\n   - Internal linking strategy\n\n5. Link Analysis:\n   - Backlink quality\n   - Anchor text distribution\n   - Internal link structure\n\n6. Local SEO:\n   - Business listings\n   - Local structured data\n   - Review signals\n\nProvide prioritized recommendations with:\n- Impact level (High, Medium, Low)\n- Implementation difficulty\n- Expected SEO benefit\n- Specific action items",
+  "tools": [
+    {
+      "name": "analyze_seo",
+      "description": "Analyze a URL or website for SEO optimization opportunities",
+      "handler": "handlers/analyze.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Website URL to analyze"
+          },
+          "focusAreas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["technical", "content", "links", "mobile", "local", "all"]
+            },
+            "description": "Specific areas to focus on"
+          }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "keyword_analysis",
+      "description": "Analyze keyword opportunities and search intent",
+      "handler": "handlers/keywords.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "targetKeyword": {
+            "type": "string",
+            "description": "Primary keyword to analyze"
+          },
+          "currentRanking": {
+            "type": "number",
+            "description": "Current search ranking position (optional)"
+          }
+        },
+        "required": ["targetKeyword"]
+      }
+    },
+    {
+      "name": "competitive_analysis",
+      "description": "Compare SEO metrics with competitors",
+      "handler": "handlers/competitors.ts",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "targetUrl": {
+            "type": "string",
+            "description": "Your website URL"
+          },
+          "competitors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Competitor URLs to compare against"
+          }
+        },
+        "required": ["targetUrl", "competitors"]
+      }
+    }
+  ],
+  "config": {
+    "prioritizeQuickWins": {
+      "type": "boolean",
+      "description": "Focus on quick-win optimizations first",
+      "default": true
+    },
+    "includeCompetitorAnalysis": {
+      "type": "boolean",
+      "description": "Include competitor benchmark data",
+      "default": false
+    },
+    "targetMarket": {
+      "type": "string",
+      "description": "Geographic or market focus for local SEO"
+    }
+  }
+}
