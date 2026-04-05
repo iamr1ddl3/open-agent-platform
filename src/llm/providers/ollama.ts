@@ -17,7 +17,7 @@ export class OllamaProvider implements LLMProviderInterface {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: this.model,
+        model: request.model || this.model,
         messages: request.messages,
         stream: false,
         options: {
@@ -45,7 +45,7 @@ export class OllamaProvider implements LLMProviderInterface {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: this.model,
+        model: request.model || this.model,
         messages: request.messages,
         stream: true,
         options: {

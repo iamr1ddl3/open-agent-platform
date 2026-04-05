@@ -24,7 +24,7 @@ export class OpenAIProvider implements LLMProviderInterface {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: this.model,
+        model: request.model || this.model,
         messages: request.messages,
         tools: request.tools ? this.formatTools(request.tools) : undefined,
         temperature: request.temperature ?? 0.7,
@@ -52,7 +52,7 @@ export class OpenAIProvider implements LLMProviderInterface {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: this.model,
+        model: request.model || this.model,
         messages: request.messages,
         tools: request.tools ? this.formatTools(request.tools) : undefined,
         temperature: request.temperature ?? 0.7,

@@ -17,6 +17,8 @@ export class AnthropicProvider implements LLMProviderInterface {
       throw new Error('Anthropic API key not configured');
     }
 
+    const modelToUse = request.model || this.model;
+
     const response = await fetch(`${this.baseUrl}/v1/messages`, {
       method: 'POST',
       headers: {
@@ -25,7 +27,7 @@ export class AnthropicProvider implements LLMProviderInterface {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: this.model,
+        model: modelToUse,
         max_tokens: request.maxTokens ?? 2000,
         system: request.messages.find(m => m.role === 'system')?.content,
         messages: request.messages.filter(m => m.role !== 'system'),

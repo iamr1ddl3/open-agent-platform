@@ -136,6 +136,7 @@ export class LLMGateway {
       tools: params.tools,
       maxTokens: params.maxTokens,
       temperature: params.temperature,
+      model: params.model,
     };
     return this.complete(request, params.provider as LLMProvider);
   }

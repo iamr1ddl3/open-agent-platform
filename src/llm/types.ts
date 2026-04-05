@@ -33,6 +33,7 @@ export interface LLMRequest {
   stream?: boolean;
   maxTokens?: number;
   temperature?: number;
+  model?: string;
 }
 
 export interface LLMResponse {

@@ -18,7 +18,7 @@ export class GoogleProvider implements LLMProviderInterface {
     }
 
     const response = await fetch(
-      `${this.baseUrl}/models/${this.model}:generateContent`,
+      `${this.baseUrl}/models/${request.model || this.model}:generateContent`,
       {
         method: 'POST',
         headers: {
@@ -52,7 +52,7 @@ export class GoogleProvider implements LLMProviderInterface {
     }
 
     const response = await fetch(
-      `${this.baseUrl}/models/${this.model}:streamGenerateContent`,
+      `${this.baseUrl}/models/${request.model || this.model}:streamGenerateContent`,
       {
         method: 'POST',
         headers: {

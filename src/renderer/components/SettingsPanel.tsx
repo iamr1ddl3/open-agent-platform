@@ -18,19 +18,43 @@ export function SettingsPanel() {
 
   const handleTestConnection = async (provider: string) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setTestStatus((prev) => ({ ...prev, [provider]: true }));
+      // First ensure the key is sent to main process
+      const providerConfig = settings.llmProviders[provider];
+      if (providerConfig?.apiKey) {
+        await (window as any).oap.llm.configure(provider, {
+          apiKey: providerConfig.apiKey,
+          baseUrl: providerConfig.baseUrl,
+          model: providerConfig.models[0] || '',
+        });
+      }
+      const result = await (window as any).oap.llm.testConnection(provider);
+      setTestStatus((prev) => ({ ...prev, [provider]: result }));
       setTimeout(() => {
         setTestStatus((prev) => ({ ...prev, [provider]: false }));
       }, 3000);
     } catch (error) {
       console.error('Connection test failed:', error);
+      setTestStatus((prev) => ({ ...prev, [provider]: false }));
     }
   };
 
-  const handleSaveSettings = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSaveSettings = async () => {
+    try {
+      // Send all configured API keys to the main process
+      for (const [name, provider] of Object.entries(settings.llmProviders)) {
+        if (provider.apiKey) {
+          await (window as any).oap.llm.configure(name, {
+            apiKey: provider.apiKey,
+            baseUrl: provider.baseUrl,
+            model: provider.models[0] || '',
+          });
+        }
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   return (
