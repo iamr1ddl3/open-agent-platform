@@ -3,6 +3,44 @@ import { Tool } from '../core/types';
 
 const processes: Map<number, any> = new Map();
 
+const BLOCKED_COMMANDS = [
+  'rm -rf /',
+  'mkfs',
+  'dd if=',
+  ':(){',
+  'fork bomb',
+  '> /dev/sda',
+  'chmod -R 777 /',
+];
+
+const BLOCKED_PATTERNS = [
+  /;\s*rm\s/,
+  /&&\s*rm\s/,
+  /\|\s*rm\s/,
+  />\s*\/dev\//,
+  /;\s*shutdown/,
+  /;\s*reboot/,
+];
+
+/**
+ * Validate command for dangerous patterns
+ */
+function validateCommand(command: string): void {
+  // Check for blocked commands
+  for (const blocked of BLOCKED_COMMANDS) {
+    if (command.includes(blocked)) {
+      throw new Error(`Command blocked: contains dangerous command "${blocked}"`);
+    }
+  }
+
+  // Check for blocked patterns
+  for (const pattern of BLOCKED_PATTERNS) {
+    if (pattern.test(command)) {
+      throw new Error(`Command blocked: matches dangerous pattern`);
+    }
+  }
+}
+
 export const executeCommand: Tool = {
   name: 'execute_command',
   description: 'Execute a shell command',
@@ -22,9 +60,12 @@ export const executeCommand: Tool = {
   },
   execute: async (params) => {
     try {
+      validateCommand(params.command);
       const result = execSync(params.command, {
         cwd: params.cwd || process.cwd(),
         encoding: 'utf-8',
+        timeout: 30000,
+        maxBuffer: 10 * 1024 * 1024,
       });
       return result;
     } catch (error: any) {
@@ -49,7 +90,8 @@ export const runCommandBackground: Tool = {
     required: ['command'],
   },
   execute: async (params) => {
-    const proc = spawn(params.command, { shell: true, detached: true });
+    validateCommand(params.command);
+    const proc = spawn(params.command, { shell: true, detached: true, timeout: 30000 });
     processes.set(proc.pid!, proc);
     return { pid: proc.pid, message: `Process started with PID ${proc.pid}` };
   },

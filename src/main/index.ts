@@ -13,7 +13,7 @@ void app.whenReady().then(async () => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.openai.com https://*.anthropic.com https://*.googleapis.com http://localhost:*"
+        'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.openai.com https://*.anthropic.com https://*.googleapis.com http://localhost:*; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
       }
     });
   });

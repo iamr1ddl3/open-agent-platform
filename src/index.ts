@@ -64,7 +64,7 @@ export {
   htmlParse,
   webGetMetadata,
   htmlToMarkdown,
-  validateUrl,
+  validateUrlTool,
 } from './tools/web-tools';
 
 export { registerBuiltinTools } from './tools/index';

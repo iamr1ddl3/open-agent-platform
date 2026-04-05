@@ -2,6 +2,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Tool } from '../core/types';
 
+const WORKSPACE_ROOT = process.cwd();
+
+/**
+ * Validate that a path stays within the workspace root
+ */
+function validatePath(inputPath: string): string {
+  const resolved = path.resolve(inputPath);
+  const relative = path.relative(WORKSPACE_ROOT, resolved);
+
+  // Check if path tries to escape workspace with ..
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`Access denied: Path "${inputPath}" is outside workspace`);
+  }
+
+  return resolved;
+}
+
 export const readFile: Tool = {
   name: 'read_file',
   description: 'Read the contents of a file',
@@ -21,7 +38,7 @@ export const readFile: Tool = {
     required: ['path'],
   },
   execute: async (params) => {
-    const filePath = params.path;
+    const filePath = validatePath(params.path);
     const encoding = params.encoding || 'utf-8';
     return fs.readFileSync(filePath, encoding as BufferEncoding);
   },
@@ -50,7 +67,7 @@ export const writeFile: Tool = {
     required: ['path', 'content'],
   },
   execute: async (params) => {
-    const filePath = params.path;
+    const filePath = validatePath(params.path);
     const content = params.content;
     fs.writeFileSync(filePath, content, 'utf-8');
     return `File written to ${filePath}`;
@@ -76,7 +93,7 @@ export const listDirectory: Tool = {
     required: ['path'],
   },
   execute: async (params) => {
-    const dirPath = params.path;
+    const dirPath = validatePath(params.path);
     const recursive = params.recursive || false;
 
     const files: string[] = [];
@@ -111,7 +128,7 @@ export const deleteFile: Tool = {
     required: ['path'],
   },
   execute: async (params) => {
-    const filePath = params.path;
+    const filePath = validatePath(params.path);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       return `File deleted: ${filePath}`;
@@ -142,7 +159,7 @@ export const editFile: Tool = {
     required: ['path', 'oldContent', 'newContent'],
   },
   execute: async (params) => {
-    const filePath = params.path;
+    const filePath = validatePath(params.path);
     const oldContent = params.oldContent;
     const newContent = params.newContent;
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -170,8 +187,10 @@ export const copyFile: Tool = {
     required: ['source', 'destination'],
   },
   execute: async (params) => {
-    fs.copyFileSync(params.source, params.destination);
-    return `File copied from ${params.source} to ${params.destination}`;
+    const source = validatePath(params.source);
+    const destination = validatePath(params.destination);
+    fs.copyFileSync(source, destination);
+    return `File copied from ${source} to ${destination}`;
   },
 };
 
@@ -193,8 +212,10 @@ export const moveFile: Tool = {
     required: ['source', 'destination'],
   },
   execute: async (params) => {
-    fs.renameSync(params.source, params.destination);
-    return `File moved from ${params.source} to ${params.destination}`;
+    const source = validatePath(params.source);
+    const destination = validatePath(params.destination);
+    fs.renameSync(source, destination);
+    return `File moved from ${source} to ${destination}`;
   },
 };
 
@@ -212,7 +233,7 @@ export const fileInfo: Tool = {
     required: ['path'],
   },
   execute: async (params) => {
-    const filePath = params.path;
+    const filePath = validatePath(params.path);
     const stat = fs.statSync(filePath);
     return {
       size: stat.size,

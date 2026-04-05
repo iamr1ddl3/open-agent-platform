@@ -21,15 +21,24 @@ export function useChat() {
 
         const response = await (window as any).oap.agent.run(agentId, content);
 
+        // Response is a plain string from AgentRunner
+        const assistantContent = typeof response === 'string' ? response : response?.result?.finalMessage || response?.message || 'No response';
+
         addMessage({
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response.result?.finalMessage || 'No response',
+          content: assistantContent,
           timestamp: new Date(),
         });
       } catch (error) {
         console.error('Failed to send message:', error);
-        throw error;
+        // Add error message to chat
+        addMessage({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`,
+          timestamp: new Date(),
+        });
       } finally {
         setIsLoading(false);
       }

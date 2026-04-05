@@ -58,7 +58,7 @@ export function registerBuiltinTools(registry: ToolRegistry): void {
     webTools.htmlParse,
     webTools.webGetMetadata,
     webTools.htmlToMarkdown,
-    webTools.validateUrl,
+    webTools.validateUrlTool,
   ];
 
   // Register all tools

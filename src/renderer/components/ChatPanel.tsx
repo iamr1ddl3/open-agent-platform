@@ -29,15 +29,25 @@ export default function ChatPanel() {
 
     try {
       const response = await (window as any).oap.agent.run('default', input);
+      // Response is a plain string from AgentRunner
+      const assistantContent = typeof response === 'string' ? response : response?.result?.finalMessage || response?.message || 'No response';
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.result?.finalMessage || 'No response',
+        content: assistantContent,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error:', error);
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }

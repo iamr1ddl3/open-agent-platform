@@ -21,14 +21,38 @@ export function setupIpcHandlers(ipcMain: IpcMain) {
   // Agent execution
   ipcMain.handle('agent:run', async (_event: any, { agentId, message, config }: any) => {
     // Create or get agent instance
-    const agent = new Agent({ id: agentId, name: agentId, systemPrompt: '', provider: 'anthropic', model: 'claude-3-5-sonnet', tools: [], maxIterations: 5, maxTokens: 2048, temperature: 0.7 });
+    const systemPrompt = config?.systemPrompt || 'You are a helpful AI assistant. Answer questions clearly and provide useful information.';
+    const agentConfig = {
+      id: agentId,
+      name: agentId,
+      systemPrompt,
+      provider: config?.provider || 'anthropic',
+      model: config?.model || 'claude-3-5-sonnet',
+      tools: config?.tools || [],
+      maxIterations: config?.maxIterations || 5,
+      maxTokens: config?.maxTokens || 2048,
+      temperature: config?.temperature || 0.7,
+    };
+    const agent = new Agent(agentConfig);
     const runner = new AgentRunner(agent, toolRegistry, llmGateway);
     return await runner.run(message);
   });
 
   ipcMain.handle('agent:stream', async (_event: any, { agentId, message, config }: any) => {
     // Create or get agent instance
-    const agent = new Agent({ id: agentId, name: agentId, systemPrompt: '', provider: 'anthropic', model: 'claude-3-5-sonnet', tools: [], maxIterations: 5, maxTokens: 2048, temperature: 0.7 });
+    const systemPrompt = config?.systemPrompt || 'You are a helpful AI assistant. Answer questions clearly and provide useful information.';
+    const agentConfig = {
+      id: agentId,
+      name: agentId,
+      systemPrompt,
+      provider: config?.provider || 'anthropic',
+      model: config?.model || 'claude-3-5-sonnet',
+      tools: config?.tools || [],
+      maxIterations: config?.maxIterations || 5,
+      maxTokens: config?.maxTokens || 2048,
+      temperature: config?.temperature || 0.7,
+    };
+    const agent = new Agent(agentConfig);
     const runner = new AgentRunner(agent, toolRegistry, llmGateway);
     return await runner.stream(message);
   });

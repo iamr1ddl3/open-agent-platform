@@ -2,6 +2,45 @@ import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { MCPMessage } from './types';
 
+/**
+ * Validate MCP message structure
+ */
+function validateMCPMessage(message: any): void {
+  // Message must be an object
+  if (typeof message !== 'object' || message === null || Array.isArray(message)) {
+    throw new Error('Invalid MCP message: must be an object, not array or null');
+  }
+
+  // Check jsonrpc field
+  if (message.jsonrpc !== '2.0') {
+    throw new Error('Invalid MCP message: jsonrpc must be "2.0"');
+  }
+
+  // Check for valid structure based on message type
+  if (message.method) {
+    // Request message - must have method and id
+    if (typeof message.method !== 'string') {
+      throw new Error('Invalid MCP message: method must be a string');
+    }
+    if (message.id !== undefined && typeof message.id !== 'string' && typeof message.id !== 'number') {
+      throw new Error('Invalid MCP message: id must be a string or number');
+    }
+  } else if (message.result !== undefined || message.error) {
+    // Response message - must have id
+    if (message.id === undefined) {
+      throw new Error('Invalid MCP message: response must have an id');
+    }
+    if (typeof message.id !== 'string' && typeof message.id !== 'number') {
+      throw new Error('Invalid MCP message: id must be a string or number');
+    }
+    if (message.error && typeof message.error !== 'object') {
+      throw new Error('Invalid MCP message: error must be an object');
+    }
+  } else {
+    throw new Error('Invalid MCP message: must be a request or response (method, result, or error)');
+  }
+}
+
 export interface Transport {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
@@ -98,9 +137,10 @@ export class StdioTransport extends EventEmitter implements Transport {
       if (line.trim()) {
         try {
           const message: MCPMessage = JSON.parse(line);
+          validateMCPMessage(message);
           this.messageHandlers.forEach(handler => handler(message));
         } catch (error) {
-          const err = new Error(`Failed to parse MCP message: ${line}`);
+          const err = new Error(`Failed to parse MCP message: ${error instanceof Error ? error.message : line}`);
           this.errorHandlers.forEach(handler => handler(err));
         }
       }
@@ -129,9 +169,10 @@ export class SSETransport extends EventEmitter implements Transport {
         this.eventSource.addEventListener('message', (event: any) => {
           try {
             const message: MCPMessage = JSON.parse(event.data);
+            validateMCPMessage(message);
             this.messageHandlers.forEach(handler => handler(message));
           } catch (error) {
-            const err = new Error(`Failed to parse SSE message: ${event.data}`);
+            const err = new Error(`Failed to parse SSE message: ${error instanceof Error ? error.message : event.data}`);
             this.errorHandlers.forEach(handler => handler(err));
           }
         });

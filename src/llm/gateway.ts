@@ -112,11 +112,27 @@ export class LLMGateway {
     provider: string;
     model: string;
   }): Promise<LLMResponse> {
-    const request: LLMRequest = {
-      messages: params.messages.map(m => ({
+    // Build messages array, prepending system prompt if provided
+    const messages: Array<{ role: 'system' | 'user' | 'assistant' | 'tool'; content: string }> = [];
+
+    // Add system prompt as first message if it's non-empty
+    if (params.systemPrompt && params.systemPrompt.trim()) {
+      messages.push({
+        role: 'system',
+        content: params.systemPrompt,
+      });
+    }
+
+    // Add user/assistant messages
+    messages.push(
+      ...params.messages.map(m => ({
         role: m.role as 'system' | 'user' | 'assistant' | 'tool',
         content: m.content,
-      })),
+      }))
+    );
+
+    const request: LLMRequest = {
+      messages,
       tools: params.tools,
       maxTokens: params.maxTokens,
       temperature: params.temperature,

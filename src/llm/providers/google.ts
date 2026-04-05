@@ -18,11 +18,12 @@ export class GoogleProvider implements LLMProviderInterface {
     }
 
     const response = await fetch(
-      `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`,
+      `${this.baseUrl}/models/${this.model}:generateContent`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': this.apiKey,
         },
         body: JSON.stringify({
           contents: request.messages.map(msg => ({
@@ -51,11 +52,12 @@ export class GoogleProvider implements LLMProviderInterface {
     }
 
     const response = await fetch(
-      `${this.baseUrl}/models/${this.model}:streamGenerateContent?key=${this.apiKey}`,
+      `${this.baseUrl}/models/${this.model}:streamGenerateContent`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': this.apiKey,
         },
         body: JSON.stringify({
           contents: request.messages.map(msg => ({
@@ -106,7 +108,12 @@ export class GoogleProvider implements LLMProviderInterface {
   async testConnection(): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/models?key=${this.apiKey}`
+        `${this.baseUrl}/models`,
+        {
+          headers: {
+            'x-goog-api-key': this.apiKey,
+          },
+        }
       );
       return response.ok;
     } catch {

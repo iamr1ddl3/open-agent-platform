@@ -239,10 +239,62 @@ export class Agent {
    * Deserialize agent from JSON
    */
   static deserialize(json: string): Agent {
-    const data = JSON.parse(json);
-    const agent = new Agent(data.config);
-    agent.internalState = data.state;
-    return agent;
+    try {
+      const data = JSON.parse(json);
+
+      // Validate structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid data: expected object');
+      }
+
+      if (!data.config || typeof data.config !== 'object') {
+        throw new Error('Invalid data: missing or invalid config object');
+      }
+
+      if (!data.state || typeof data.state !== 'object') {
+        throw new Error('Invalid data: missing or invalid state object');
+      }
+
+      // Validate required config fields
+      if (!data.config.id || typeof data.config.id !== 'string') {
+        throw new Error('Invalid config: missing or invalid id');
+      }
+
+      if (!data.config.name || typeof data.config.name !== 'string') {
+        throw new Error('Invalid config: missing or invalid name');
+      }
+
+      // Whitelist allowed config properties
+      const allowedConfigKeys = [
+        'id',
+        'name',
+        'description',
+        'systemPrompt',
+        'model',
+        'provider',
+        'temperature',
+        'maxTokens',
+        'maxIterations',
+        'tools',
+        'createdAt',
+        'updatedAt',
+      ];
+
+      for (const key of Object.keys(data.config)) {
+        if (!allowedConfigKeys.includes(key)) {
+          throw new Error(`Invalid config: unexpected property "${key}"`);
+        }
+      }
+
+      const agent = new Agent(data.config);
+      agent.internalState = data.state;
+      return agent;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to deserialize agent: ${error.message}`);
+      }
+      throw new Error('Failed to deserialize agent: unknown error');
+    }
   }
 
   /**

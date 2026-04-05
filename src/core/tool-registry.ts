@@ -125,11 +125,62 @@ export class ToolRegistry {
         }
       }
 
+      // String maxLength check (default 100000 chars)
+      if (paramDef.type === 'string' && typeof paramValue === 'string') {
+        const maxLength = paramDef.maxLength ?? 100000;
+        if (paramValue.length > maxLength) {
+          errors.push(
+            `Parameter '${paramName}' exceeds maximum length of ${maxLength} characters`
+          );
+        }
+      }
+
+      // Number min/max check
+      if (paramDef.type === 'number' && typeof paramValue === 'number') {
+        if (typeof paramDef.minimum === 'number' && paramValue < paramDef.minimum) {
+          errors.push(
+            `Parameter '${paramName}' must be at least ${paramDef.minimum}`
+          );
+        }
+        if (typeof paramDef.maximum === 'number' && paramValue > paramDef.maximum) {
+          errors.push(
+            `Parameter '${paramName}' must be at most ${paramDef.maximum}`
+          );
+        }
+      }
+
+      // Array maxItems check (default 1000)
+      if (paramDef.type === 'array' && Array.isArray(paramValue)) {
+        const maxItems = paramDef.maxItems ?? 1000;
+        if (paramValue.length > maxItems) {
+          errors.push(
+            `Parameter '${paramName}' exceeds maximum of ${maxItems} items`
+          );
+        }
+      }
+
+      // Prototype pollution prevention
+      if (paramName === '__proto__' || paramName === 'constructor') {
+        errors.push(`Parameter '${paramName}' is not allowed`);
+        continue;
+      }
+
       // Enum check
       if (paramDef.enum && !paramDef.enum.includes(paramValue)) {
         errors.push(
           `Parameter '${paramName}' must be one of: ${paramDef.enum.join(', ')}`
         );
+      }
+    }
+
+    // Check for prototype pollution in object parameters
+    for (const [paramName, paramValue] of Object.entries(params)) {
+      if (typeof paramValue === 'object' && paramValue !== null && !Array.isArray(paramValue)) {
+        for (const key of Object.keys(paramValue)) {
+          if (key === '__proto__' || key === 'constructor') {
+            errors.push(`Parameter '${paramName}' contains forbidden property '${key}'`);
+          }
+        }
       }
     }
 

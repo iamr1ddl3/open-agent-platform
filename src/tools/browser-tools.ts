@@ -1,5 +1,55 @@
 import { Tool } from '../core/types';
 
+/**
+ * Validate URL for security - block private IPs and restricted protocols
+ */
+function validateUrl(urlString: string): void {
+  let url: URL;
+  try {
+    url = new URL(urlString);
+  } catch {
+    throw new Error(`Invalid URL: "${urlString}"`);
+  }
+
+  // Only allow http and https
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error(`Protocol not allowed: "${url.protocol}". Only http: and https: are supported`);
+  }
+
+  const hostname = url.hostname;
+
+  // Block localhost and 127.0.0.1
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    throw new Error(`Access denied: localhost is not allowed`);
+  }
+
+  // Block IPv6 loopback (::1)
+  if (hostname === '::1') {
+    throw new Error(`Access denied: IPv6 loopback is not allowed`);
+  }
+
+  // Block private IP ranges
+  const ipParts = hostname.split('.');
+  if (ipParts.length === 4 && ipParts.every(p => /^\d+$/.test(p))) {
+    const [a, b] = ipParts.map(Number);
+
+    // 10.x.x.x
+    if (a === 10) {
+      throw new Error(`Access denied: private IP range 10.x.x.x is not allowed`);
+    }
+
+    // 172.16-31.x.x
+    if (a === 172 && b >= 16 && b <= 31) {
+      throw new Error(`Access denied: private IP range 172.16-31.x.x is not allowed`);
+    }
+
+    // 192.168.x.x
+    if (a === 192 && b === 168) {
+      throw new Error(`Access denied: private IP range 192.168.x.x is not allowed`);
+    }
+  }
+}
+
 export const browserNavigate: Tool = {
   name: 'browser_navigate',
   description: 'Navigate to a URL',
@@ -11,6 +61,7 @@ export const browserNavigate: Tool = {
     required: ['url'],
   },
   execute: async (params) => {
+    validateUrl(params.url);
     return { success: true, url: params.url };
   },
 };
@@ -163,6 +214,7 @@ export const takeScreenshot: Tool = {
     required: ['url'],
   },
   execute: async (params) => {
+    validateUrl(params.url);
     return {
       success: true,
       message: 'Screenshot functionality available',
@@ -185,6 +237,7 @@ export const getPageContent: Tool = {
     required: ['url'],
   },
   execute: async (params) => {
+    validateUrl(params.url);
     const response = await fetch(params.url);
     return await response.text();
   },

@@ -4,6 +4,46 @@ import { ToolRegistry } from './tool-registry';
 import { AgentConfig, LLMResponse, ToolExecutionResult, ConversationMessage } from './types';
 import { EventEmitter } from 'events';
 
+/**
+ * Simple rate limiter for LLM calls
+ */
+class RateLimiter {
+  private callTimestamps: number[] = [];
+  private maxCallsPerMinute: number;
+
+  constructor(maxCallsPerMinute: number = 20) {
+    this.maxCallsPerMinute = maxCallsPerMinute;
+  }
+
+  /**
+   * Check if a call is allowed and throw if rate limit exceeded
+   */
+  checkRateLimit(): void {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+
+    // Remove old timestamps outside the 1-minute window
+    this.callTimestamps = this.callTimestamps.filter(ts => ts > oneMinuteAgo);
+
+    if (this.callTimestamps.length >= this.maxCallsPerMinute) {
+      throw new Error(
+        `Rate limit exceeded: maximum ${this.maxCallsPerMinute} LLM calls per minute`
+      );
+    }
+
+    this.callTimestamps.push(now);
+  }
+
+  /**
+   * Get current call count in the last minute
+   */
+  getCurrentCallCount(): number {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    return this.callTimestamps.filter(ts => ts > oneMinuteAgo).length;
+  }
+}
+
 export interface LLMGateway {
   chat(params: {
     systemPrompt: string;
@@ -27,6 +67,10 @@ export class AgentRunner extends EventEmitter {
   private toolRegistry: ToolRegistry;
   private llmGateway: LLMGateway;
   private config: RunnerConfig;
+  private rateLimiter: RateLimiter;
+  private startTime: number = 0;
+  private executionTimeout: number = 5 * 60 * 1000; // 5 minutes default
+  private iterationDelay: number = 100; // 100ms delay between iterations
 
   constructor(
     agent: Agent,
@@ -44,6 +88,7 @@ export class AgentRunner extends EventEmitter {
       timeout: config.timeout ?? 300000, // 5 minutes default
       logLevel: config.logLevel ?? 'info',
     };
+    this.rateLimiter = new RateLimiter(20); // 20 calls per minute default
   }
 
   /**
@@ -68,16 +113,22 @@ export class AgentRunner extends EventEmitter {
     this.emit('start', { message: userMessage });
     this.agent.setStatus('running');
     this.agent.setCurrentTask(userMessage);
+    this.startTime = Date.now();
 
     try {
       const result = await this.executeLoop(userMessage);
+      this.log('debug', `Agent run completed with result: ${result}`);
       this.agent.setStatus('idle');
       this.emit('complete', { result });
-      return result;
+      // Ensure we always return a string
+      return result || 'No response generated';
     } catch (error) {
       this.agent.setStatus('error');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.log('error', `Agent run failed: ${errorMessage}`, error);
       this.emit('error', { error });
-      throw error;
+      // Return error message as string instead of throwing
+      return `Error: ${errorMessage}`;
     }
   }
 
@@ -206,60 +257,86 @@ export class AgentRunner extends EventEmitter {
    * Execute the main agent loop
    */
   private async executeLoop(userMessage: string): Promise<string> {
-    const agentConfig = this.agent.getConfig();
-    this.agent.addMessage('user', userMessage);
+    try {
+      const agentConfig = this.agent.getConfig();
+      this.agent.addMessage('user', userMessage);
 
-    let iteration = 0;
-    let finalResponse = '';
+      let iteration = 0;
+      let finalResponse = '';
 
-    while (iteration < agentConfig.maxIterations) {
-      iteration++;
-      this.agent.incrementIteration();
-      this.log('debug', `Iteration ${iteration}/${agentConfig.maxIterations}`);
-
-      const prompt = this.buildPrompt(agentConfig);
-      const llmResponse = await this.callLLM(agentConfig, prompt);
-
-      this.agent.addMessage('assistant', llmResponse.content);
-      finalResponse = llmResponse.content;
-
-      // Handle tool calls
-      if (llmResponse.toolCalls && llmResponse.toolCalls.length > 0) {
-        const toolResults: ToolExecutionResult[] = [];
-
-        for (const toolCall of llmResponse.toolCalls) {
-          this.log('info', `Executing tool: ${toolCall.name}`);
-          const result = await this.toolRegistry.execute(
-            toolCall.name,
-            toolCall.arguments
-          );
-          toolResults.push(result);
-
-          if (!result.success) {
-            this.log('warn', `Tool failed: ${toolCall.name}`, result.error);
-          }
+      while (iteration < agentConfig.maxIterations) {
+        // Check execution timeout
+        const elapsedTime = Date.now() - this.startTime;
+        if (elapsedTime > this.executionTimeout) {
+          this.log('warn', `Execution timeout exceeded (${elapsedTime}ms)`);
+          throw new Error(`Agent execution timeout exceeded (${this.executionTimeout}ms)`);
         }
 
-        const toolMessage = toolResults
-          .map(
-            (r) =>
-              `${r.toolName}: ${r.success ? r.result : `Error: ${r.error}`}`
-          )
-          .join('\n');
+        // Add delay between iterations
+        if (iteration > 0) {
+          await new Promise(resolve => setTimeout(resolve, this.iterationDelay));
+        }
 
-        this.agent.addMessage('tool', toolMessage, undefined, toolResults);
-      } else {
-        // Final response received
-        this.log('debug', 'Final response received');
-        break;
+        iteration++;
+        this.agent.incrementIteration();
+        this.log('debug', `Iteration ${iteration}/${agentConfig.maxIterations}`);
+
+        try {
+          const prompt = this.buildPrompt(agentConfig);
+          const llmResponse = await this.callLLM(agentConfig, prompt);
+
+          this.agent.addMessage('assistant', llmResponse.content);
+          finalResponse = llmResponse.content;
+
+          // Handle tool calls
+          if (llmResponse.toolCalls && llmResponse.toolCalls.length > 0) {
+            const toolResults: ToolExecutionResult[] = [];
+
+            for (const toolCall of llmResponse.toolCalls) {
+              this.log('info', `Executing tool: ${toolCall.name}`);
+              const result = await this.toolRegistry.execute(
+                toolCall.name,
+                toolCall.arguments
+              );
+              toolResults.push(result);
+
+              if (!result.success) {
+                this.log('warn', `Tool failed: ${toolCall.name}`, result.error);
+              }
+            }
+
+            const toolMessage = toolResults
+              .map(
+                (r) =>
+                  `${r.toolName}: ${r.success ? r.result : `Error: ${r.error}`}`
+              )
+              .join('\n');
+
+            this.agent.addMessage('tool', toolMessage, undefined, toolResults);
+          } else {
+            // Final response received
+            this.log('debug', 'Final response received');
+            break;
+          }
+
+          if (llmResponse.stopReason === 'max_tokens') {
+            break;
+          }
+        } catch (iterationError) {
+          this.log('error', `Iteration ${iteration} failed`, iterationError);
+          throw iterationError;
+        }
       }
 
-      if (llmResponse.stopReason === 'max_tokens') {
-        break;
+      if (iteration >= agentConfig.maxIterations) {
+        this.log('warn', `Max iterations reached (${iteration})`);
       }
+
+      return finalResponse || 'No response generated';
+    } catch (error) {
+      this.log('error', 'Execute loop error', error);
+      throw error;
     }
-
-    return finalResponse;
   }
 
   /**
@@ -291,6 +368,9 @@ export class AgentRunner extends EventEmitter {
     agentConfig: AgentConfig,
     systemPrompt: string
   ): Promise<LLMResponse> {
+    // Check rate limit before calling LLM
+    this.rateLimiter.checkRateLimit();
+
     const messages = this.agent.getAllMessages().map((msg) => ({
       role: msg.role,
       content: msg.content,
@@ -311,7 +391,7 @@ export class AgentRunner extends EventEmitter {
           }))
       : undefined;
 
-    this.log('debug', `Calling LLM: ${agentConfig.provider}/${agentConfig.model}`);
+    this.log('debug', `Calling LLM: ${agentConfig.provider}/${agentConfig.model} (${this.rateLimiter.getCurrentCallCount()}/20 calls per minute)`);
 
     try {
       const response = await Promise.race([
