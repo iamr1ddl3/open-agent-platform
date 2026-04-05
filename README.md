@@ -136,8 +136,8 @@ User Input → Renderer (React) → IPC Bridge → Main Process
 
 ```bash
 # Clone the repository
-git clone https://github.com/open-agent-platform/oap.git
-cd oap
+git clone https://github.com/iamr1ddl3/open-agent-platform.git
+cd open-agent-platform
 
 # Install dependencies
 npm install
