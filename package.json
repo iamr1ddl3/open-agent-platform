@@ -20,7 +20,8 @@
     "test:watch": "vitest --watch",
     "example:core": "ts-node src/core/example.ts",
     "example:llm": "ts-node src/llm/examples.ts",
-    "clean": "rm -rf dist release"
+    "start": "electron .",
+    "clean": "node -e \"const fs=require('fs');['dist','release'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch(e){}})\""
   },
   "dependencies": {
     "openai": "^4.60.0",
